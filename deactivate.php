@@ -10,7 +10,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $student_id = (int) $_GET['id'];
 
-// Verify the student exists and is currently active
+// verify if student exists and is currently active
 $stmt = $conn->prepare("SELECT student_id FROM students WHERE student_id = ? AND is_active = 1");
 $stmt->bind_param("i", $student_id);
 $stmt->execute();
@@ -24,7 +24,7 @@ if ($result->num_rows === 0) {
 }
 $stmt->close();
 
-// Deactivate the student
+// way to deactivate the student 
 $stmt = $conn->prepare("UPDATE students SET is_active = 0 WHERE student_id = ?");
 $stmt->bind_param("i", $student_id);
 $stmt->execute();

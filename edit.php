@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             WHERE student_id = ?
         ");
         $stmt->bind_param(
-            "ssssi",
+            "ssss",
             $data['first_name'],
             $data['last_name'],
             $data['date_of_birth'],

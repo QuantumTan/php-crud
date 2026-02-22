@@ -77,7 +77,11 @@ $successType = $_GET['success'] ?? '';
                         <td><?= htmlspecialchars($row['gender']) ?></td>
                         <td>
                             <a href="/school/edit.php?id=<?= $row['student_id'] ?>" class="btn btn-primary btn-sm">Edit</a>
-                            <a href="/school/deactivate.php?id=<?= $row['student_id'] ?>" class="btn btn-danger btn-sm">Deactivate</a>
+                            <button class="btn btn-danger btn-sm btn-deactivate"
+                                data-id="<?= $row['student_id'] ?>"
+                                data-name="<?= htmlspecialchars($fullName) ?>"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deactivateModal">Deactivate</button>
                         </td>
                     </tr>
                 <?php endwhile;
@@ -86,6 +90,37 @@ $successType = $_GET['success'] ?? '';
             </tbody>
         </table>
     </div>
+
+    <!-- deactivation confirmation modal -->
+    <div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deactivateModalLabel">Confirm Deactivation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to deactivate <strong id="studentName"></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a id="confirmDeactivate" href="#" class="btn btn-danger">Deactivate</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const deactivateModal = document.getElementById('deactivateModal');
+        deactivateModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const studentId = button.getAttribute('data-id');
+            const studentName = button.getAttribute('data-name');
+
+            document.getElementById('studentName').textContent = studentName;
+            document.getElementById('confirmDeactivate').href = '/school/deactivate.php?id=' + studentId;
+        });
+    </script>
 </body>
 
 </html>

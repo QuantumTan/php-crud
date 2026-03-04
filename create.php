@@ -1,59 +1,22 @@
 <?php
 
+require_once __DIR__ . '/classes/Student.php';
+
 $errors = [];
-$data = [
-    'first_name' => '',
-    'last_name' => '',
-    'date_of_birth' => '',
-    'gender' => ''
-];
-// connection to db
-$conn = new mysqli("localhost", "root", "", "pho_school");
+$student = new Student();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $data['first_name'] = trim($_POST['first_name'] ?? '');
-    $data['last_name'] = trim($_POST['last_name'] ?? '');
-    $data['date_of_birth'] = $_POST['date_of_birth'] ?? '';
-    $data['gender'] = $_POST['gender'] ?? '';
+    $student->first_name = trim($_POST['first_name'] ?? '');
+    $student->last_name = trim($_POST['last_name'] ?? '');
+    $student->date_of_birth = $_POST['date_of_birth'] ?? '';
+    $student->gender = $_POST['gender'] ?? '';
 
-    // checking
-    if ($data['first_name'] === '') {
-        $errors['first_name'] = 'First name is required.';
-    }
-
-    if ($data['last_name'] === '') {
-        $errors['last_name'] = 'Last name is required.';
-    }
-
-    if ($data['date_of_birth'] === '') {
-        $errors['date_of_birth'] = 'Date of birth is required.';
-    }
-
-    if (!in_array($data['gender'], ['Male', 'Female'])) {
-        $errors['gender'] = 'Invalid gender selected.';
-    }
+    $errors = $student->validate();
 
     // insert if no errors
     if (empty($errors)) {
-
-        $stmt = $conn->prepare("
-            INSERT INTO students (first_name, last_name, date_of_birth, gender)
-            VALUES (?, ?, ?, ?)
-        ");
-
-        $stmt->bind_param(
-            "ssss",
-            $data['first_name'],
-            $data['last_name'],
-            $data['date_of_birth'],
-            $data['gender']
-        );
-
-        $stmt->execute();
-
-        $stmt->close();
-        $conn->close();
+        $student->create();
 
         // Post-Redirect-Get
         header("Location: index.php?success=created");
@@ -91,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     type="text"
                                     name="first_name"
                                     class="form-control <?= isset($errors['first_name']) ? 'is-invalid' : '' ?>"
-                                    value="<?= htmlspecialchars($data['first_name']) ?>"
+                                    value="<?= htmlspecialchars($student->first_name) ?>"
                                     maxlength="50">
                                 <div class="invalid-feedback">
                                     <?= $errors['first_name'] ?? '' ?>
@@ -104,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     type="text"
                                     name="last_name"
                                     class="form-control <?= isset($errors['last_name']) ? 'is-invalid' : '' ?>"
-                                    value="<?= htmlspecialchars($data['last_name']) ?>"
+                                    value="<?= htmlspecialchars($student->last_name) ?>"
                                     maxlength="50">
                                 <div class="invalid-feedback">
                                     <?= $errors['last_name'] ?? '' ?>
@@ -117,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     type="date"
                                     name="date_of_birth"
                                     class="form-control <?= isset($errors['date_of_birth']) ? 'is-invalid' : '' ?>"
-                                    value="<?= htmlspecialchars($data['date_of_birth']) ?>">
+                                    value="<?= htmlspecialchars($student->date_of_birth) ?>">
                                 <div class="invalid-feedback">
                                     <?= $errors['date_of_birth'] ?? '' ?>
                                 </div>
@@ -129,8 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     name="gender"
                                     class="form-select <?= isset($errors['gender']) ? 'is-invalid' : '' ?>">
                                     <option value="">Select Gender</option>
-                                    <option value="Male" <?= $data['gender'] === 'Male' ? 'selected' : '' ?>>Male</option>
-                                    <option value="Female" <?= $data['gender'] === 'Female' ? 'selected' : '' ?>>Female</option>
+                                    <option value="Male" <?= $student->gender === 'Male' ? 'selected' : '' ?>>Male</option>
+                                    <option value="Female" <?= $student->gender === 'Female' ? 'selected' : '' ?>>Female</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     <?= $errors['gender'] ?? '' ?>

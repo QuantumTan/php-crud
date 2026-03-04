@@ -1,17 +1,9 @@
 <?php
 
-// db connection
-$conn = new mysqli("localhost", "root", "", "pho_school");
+require_once __DIR__ . '/classes/Student.php';
 
 $errors = [];
-$data = [
-    'student_id' => '',
-    'first_name' => '',
-    'last_name' => '',
-    'date_of_birth' => '',
-    'gender' => ''
-];
-
+$student = new Student();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
@@ -20,66 +12,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
 
-    $student_id = (int) $_GET['id'];
-
-    $stmt = $conn->prepare("SELECT * FROM students WHERE student_id = ?");
-    $stmt->bind_param("i", $student_id);
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
+    $row = $student->findById((int) $_GET['id']);
 
     if (!$row) {
         header("Location: /school/index.php");
         exit;
     }
 
-    $data['student_id'] = $row['student_id'];
-    $data['first_name'] = $row['first_name'];
-    $data['last_name'] = $row['last_name'];
-    $data['date_of_birth'] = $row['date_of_birth'];
-    $data['gender'] = $row['gender'];
-
-    $stmt->close();
+    $student->student_id = $row['student_id'];
+    $student->first_name = $row['first_name'];
+    $student->last_name = $row['last_name'];
+    $student->date_of_birth = $row['date_of_birth'];
+    $student->gender = $row['gender'];
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $data['student_id'] = (int) ($_POST['student_id'] ?? 0);
-    $data['first_name'] = trim($_POST['first_name'] ?? '');
-    $data['last_name'] = trim($_POST['last_name'] ?? '');
-    $data['date_of_birth'] = $_POST['date_of_birth'] ?? '';
-    $data['gender'] = $_POST['gender'] ?? '';
+    $student->student_id = (int) ($_POST['student_id'] ?? 0);
+    $student->first_name = trim($_POST['first_name'] ?? '');
+    $student->last_name = trim($_POST['last_name'] ?? '');
+    $student->date_of_birth = $_POST['date_of_birth'] ?? '';
+    $student->gender = $_POST['gender'] ?? '';
 
-    if ($data['first_name'] === '') {
-        $errors['first_name'] = 'First name is required.';
-    }
-    if ($data['last_name'] === '') {
-        $errors['last_name'] = 'Last name is required.';
-    }
-    if ($data['date_of_birth'] === '') {
-        $errors['date_of_birth'] = 'Date of birth is required.';
-    }
-    if (!in_array($data['gender'], ['Male', 'Female'])) {
-        $errors['gender'] = 'Invalid gender selected.';
-    }
+    $errors = $student->validate();
 
     if (empty($errors)) {
-        $stmt = $conn->prepare("
-            UPDATE students SET first_name = ?, last_name = ?, date_of_birth = ?, gender = ?
-            WHERE student_id = ?
-        ");
-        $stmt->bind_param(
-            "ssss",
-            $data['first_name'],
-            $data['last_name'],
-            $data['date_of_birth'],
-            $data['gender'],
-            $data['student_id']
-        );
-        $stmt->execute();
-        $stmt->close();
-        $conn->close();
+        $student->update();
 
         header("Location: index.php?success=updated");
         exit;
@@ -112,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <form method="post" novalidate>
 
 
-                            <input type="hidden" name="student_id" value="<?= $data['student_id'] ?>">
+                            <input type="hidden" name="student_id" value="<?= $student->student_id ?>">
 
                             <div class="mb-3">
                                 <label class="form-label">First Name</label>
@@ -120,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     type="text"
                                     name="first_name"
                                     class="form-control <?= isset($errors['first_name']) ? 'is-invalid' : '' ?>"
-                                    value="<?= htmlspecialchars($data['first_name']) ?>"
+                                    value="<?= htmlspecialchars($student->first_name) ?>"
                                     maxlength="50">
                                 <div class="invalid-feedback">
                                     <?= $errors['first_name'] ?? '' ?>
@@ -133,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     type="text"
                                     name="last_name"
                                     class="form-control <?= isset($errors['last_name']) ? 'is-invalid' : '' ?>"
-                                    value="<?= htmlspecialchars($data['last_name']) ?>"
+                                    value="<?= htmlspecialchars($student->last_name) ?>"
                                     maxlength="50">
                                 <div class="invalid-feedback">
                                     <?= $errors['last_name'] ?? '' ?>
@@ -146,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     type="date"
                                     name="date_of_birth"
                                     class="form-control <?= isset($errors['date_of_birth']) ? 'is-invalid' : '' ?>"
-                                    value="<?= htmlspecialchars($data['date_of_birth']) ?>">
+                                    value="<?= htmlspecialchars($student->date_of_birth) ?>">
                                 <div class="invalid-feedback">
                                     <?= $errors['date_of_birth'] ?? '' ?>
                                 </div>
@@ -158,8 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     name="gender"
                                     class="form-select <?= isset($errors['gender']) ? 'is-invalid' : '' ?>">
                                     <option value="">Select Gender</option>
-                                    <option value="Male" <?= $data['gender'] === 'Male' ? 'selected' : '' ?>>Male</option>
-                                    <option value="Female" <?= $data['gender'] === 'Female' ? 'selected' : '' ?>>Female</option>
+                                    <option value="Male" <?= $student->gender === 'Male' ? 'selected' : '' ?>>Male</option>
+                                    <option value="Female" <?= $student->gender === 'Female' ? 'selected' : '' ?>>Female</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     <?= $errors['gender'] ?? '' ?>

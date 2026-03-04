@@ -1,5 +1,9 @@
 <?php
+require_once __DIR__ . '/classes/Student.php';
+
 $successType = $_GET['success'] ?? '';
+$student = new Student();
+$students = $student->getAllActive();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,30 +48,7 @@ $successType = $_GET['success'] ?? '';
             </thead>
             <tbody>
 
-                <?php
-                $servername = "localhost";
-                $username = "root";
-                $password = "";
-                $database = "pho_school";
-                //    db connection
-                $connection = new mysqli($servername, $username, $password, $database);
-                // check the connection
-                if ($connection->connect_error) {
-                    die("connection failed: " . $connection->connect_error);
-                }
-
-                // read rows from the db (only active students)
-                $sql = "select * from students WHERE is_active = 1";
-                // store result
-                $result = $connection->query($sql);
-                // checking
-                if (!$result) {
-                    die("Connection failed: " . $connection->error);
-                }
-
-
-                // read the data using while loop
-                while ($row = $result->fetch_assoc()):
+                <?php foreach ($students as $row):
                     $fullName = $row['first_name'] . ' ' . $row['last_name'];
                 ?>
                     <tr>
@@ -84,8 +65,7 @@ $successType = $_GET['success'] ?? '';
                                 data-bs-target="#deactivateModal">Deactivate</button>
                         </td>
                     </tr>
-                <?php endwhile;
-                ?>
+                <?php endforeach; ?>
 
             </tbody>
         </table>
